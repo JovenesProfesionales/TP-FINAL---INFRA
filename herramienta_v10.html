@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sala de Situación · Piping Tren 1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   RESET & VARIABLES
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:        #1B4B8A;
+  --blue-dark:   #122F5A;
+  --cyan:        #00A3E0;
+  --red:         #C0392B;
+  --green:       #1A6B3A;
+  --amber:       #B8560A;
+  --bg:          #F0F2F5;
+  --bg2:         #E4E8EF;
+  --white:       #FFFFFF;
+  --text:        #0D1B2E;
+  --text2:       #4A5568;
+  --text3:       #8896A8;
+  --border:      #D1D9E6;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   LAYOUT GENERALES
+   ============================================================ */
+.topbar {
+  background: var(--blue-dark);
+  padding: 0 2rem;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: .04em;
+}
+.topbar-meta {
+  font-size: 10px;
+  color: rgba(255,255,255,.4);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.cyan-bar  { height: 3px; background: var(--cyan); }
+
+.main {
+  padding: 1.25rem 2rem 3rem;
+  max-width: 100%;
+}
+.page-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  margin-bottom: .1rem;
+}
+.page-sub {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 1rem;
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.card {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 1.1rem;
+}
+.card-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text3);
+  margin-bottom: .2rem;
+}
+.card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  margin-bottom: .15rem;
+}
+.card-sub  { font-size: 11px; color: var(--text2); margin-bottom: .9rem; }
+.divider   { border: none; border-top: 1px solid var(--border); margin: .75rem 0; }
+
+/* ============================================================
+   KPIs MINI (dentro de card)
+   ============================================================ */
+.kpi-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding-top: .9rem;
+  border-top: 1px solid var(--border);
+}
+.kpi-mini {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border-top: 3px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.kpi-mini.amber { border-top-color: var(--amber); }
+.kpi-mini.red   { border-top-color: var(--red); }
+.kpi-mini.blue  { border-top-color: var(--blue); }
+
+.kpi-mini-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text3);
+  margin-bottom: 5px;
+}
+.kpi-mini-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.kpi-mini.amber .kpi-mini-val { color: var(--amber); }
+.kpi-mini.red   .kpi-mini-val { color: var(--red); }
+.kpi-mini.blue  .kpi-mini-val { color: var(--blue); }
+.kpi-mini-sub { font-size: 10px; color: var(--text3); }
+.kpi-mini-sub strong { font-weight: 600; }
+
+/* ============================================================
+   ACCIONES
+   ============================================================ */
+.alist { display: flex; flex-direction: column; gap: 9px; }
+
+.ai {
+  border-radius: 8px;
+  border: 1px solid;
+  border-left-width: 4px;
+  overflow: hidden;
+}
+.ai.urgente  { border-color: #f5c6c5; border-left-color: var(--red);   background: #FEF2F2; }
+.ai.atencion { border-color: #fad4a8; border-left-color: var(--amber); background: #FFFBEB; }
+.ai.ok       { border-color: #b7dfc8; border-left-color: var(--green); background: #F0FDF4; }
+
+.ai-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px 6px;
+}
+.ai-area {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.ai.urgente  .ai-area { color: var(--red); }
+.ai.atencion .ai-area { color: var(--amber); }
+.ai.ok       .ai-area { color: var(--green); }
+
+.ai-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.ai.urgente  .ai-badge { background: #FDECEA; color: var(--red); }
+.ai.atencion .ai-badge { background: #FEF3E2; color: var(--amber); }
+.ai.ok       .ai-badge { background: #E8F5EE; color: var(--green); }
+
+.ai-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+.ai-col {
+  padding: 8px 14px;
+  border-right: 1px solid rgba(0,0,0,.06);
+}
+.ai-col:last-child { border-right: none; }
+.ai-col-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text3);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.ai-col-text { font-size: 11px; color: var(--text); line-height: 1.45; }
+.ai-col-text strong { font-weight: 600; }
+
+/* ============================================================
+   SIMULADOR
+   ============================================================ */
+.sim {
+  background: #0E2444;
+  border-radius: 10px;
+  padding: 1.1rem 1.75rem;
+  margin-bottom: 1.1rem;
+  margin-top: 1.25rem;
+}
+.sim-disclaimer {
+  font-size: 10px;
+  color: rgba(255,255,255,.65);
+  margin-bottom: .85rem;
+  font-style: italic;
+}
+.sim-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+.sim-control label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.9);
+  display: block;
+  margin-bottom: .35rem;
+}
+
+.sim-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: .35rem;
+}
+.sim-val span { font-size: 12px; font-weight: 400; color: rgba(255,255,255,.8); margin-left: 3px; }
+
+input[type=range] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+
+.sim-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255,255,255,.65);
+  margin-top: 1px;
+}
+
+.sim-result { border-left: 1px solid rgba(255,255,255,.12); padding-left: 1.5rem; }
+.sim-rl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.85);
+  margin-bottom: .25rem;
+  font-weight: 700;
+}
+.sim-rb {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+.sim-rb.ok   { color: #4ADE80; }
+.sim-rb.warn { color: #FBBF24; }
+.sim-rb.bad  { color: #F87171; }
+.sim-rs      { font-size: 12px; color: rgba(255,255,255,.8); }
+
+/* ============================================================
+   DISTRIBUCIÓN POR ÁREA
+   ============================================================ */
+.dist-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: .6rem 0;
+  border-top: 1px solid rgba(255,255,255,.12);
+  margin-top: .5rem;
+  padding-top: .5rem;
+  user-select: none;
+}
+.dist-toggle-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--cyan); }
+.dist-toggle-arrow { font-size: 12px; color: var(--cyan); transition: transform .25s; }
+.dist-toggle-arrow.open { transform: rotate(180deg); }
+
+.dist-panel          { display: none; }
+.dist-panel.open     { display: block; margin-top: 0; }
+
+.dist-total {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: .85rem;
+  padding: .6rem 1rem;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  margin-top: .5rem;
+}
+.dist-total-label  { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.85); }
+.dist-total-val    { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; }
+.dist-total-val.ok   { color: var(--green); }
+.dist-total-val.over { color: var(--red); }
+
+.dist-table { width: 100%; border-collapse: collapse; background: transparent; }
+.dist-table th {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.45);
+  padding: .5rem .75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+}
+.dist-table th.right { text-align: right; }
+.dist-table td {
+  padding: .55rem .75rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  font-size: 11px;
+  color: rgba(255,255,255,.8);
+}
+.dist-table td.right  { text-align: right; }
+.dist-table tr:hover td { background: rgba(255,255,255,.05); }
+
+.dist-input {
+  width: 60px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  text-align: center;
+  color: var(--cyan);
+  background: rgba(255,255,255,.08);
+}
+.dist-input:focus { outline: none; border-color: var(--cyan); }
+
+.dist-bar      { height: 4px; background: rgba(255,255,255,.12); border-radius: 2px; margin-top: 3px; }
+.dist-bar-fill { height: 4px; border-radius: 2px; background: var(--blue); transition: width .2s; }
+.dist-bar-fill.over { background: var(--red); }
+.dist-fin { font-size: 10px; color: rgba(255,255,255,.5); }
+
+.crit-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   GRÁFICOS
+   ============================================================ */
+.charts-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin-bottom: 1.1rem;
+}
+.cc { background: var(--white); border-radius: 10px; padding: 1rem 1.25rem; }
+.cl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+.chart-note { font-size: 9px; color: var(--text2); font-style: italic; margin-bottom: 6px; line-height: 1.4; }
+
+.leg { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
+.li  { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--text2); }
+.ls  { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.ll  { width: 14px; height: 2px; flex-shrink: 0; border-radius: 1px; }
+.ld  { width: 14px; height: 0; border-top: 2px dashed; flex-shrink: 0; }
+
+/* ============================================================
+   COLLAPSIBLE BLOCKS
+   ============================================================ */
+.block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: .15rem 0;
+}
+.block-header:hover .block-title { color: var(--cyan); }
+.block-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  transition: color .15s;
+}
+.block-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text3);
+  margin-bottom: .15rem;
+}
+.block-chevron {
+  font-size: 13px;
+  color: var(--text3);
+  transition: transform .25s;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+.block-chevron.open { transform: rotate(180deg); }
+.block-body.collapsed { display: none; }
+.block-body.expanded  { display: block; padding-top: .85rem; }
+.block-header.dark .block-title   { color: var(--white); }
+.block-header.dark .block-eyebrow { color: var(--cyan); }
+.block-header.dark .block-chevron { color: var(--cyan); }
+.block-header.dark:hover .block-title { color: var(--cyan); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.foot {
+  font-size: 9px;
+  color: var(--text3);
+  padding-top: .65rem;
+  border-top: 1px solid var(--border);
+  line-height: 1.8;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOPBAR
+     ============================================================ -->
+<div class="topbar">
+  <div class="topbar-brand">YPF &nbsp;<span style="opacity:.3;font-weight:300;">|</span>&nbsp; Control de Construcción · Piping · PTC LAS</div>
+  <div class="topbar-meta" id="fecha-corte"></div>
+</div>
+<div class="cyan-bar"></div>
+
+<!-- ============================================================
+     MAIN
+     ============================================================ -->
+<div class="main">
+
+  <div class="page-title">Piping · PTC · Tren 1</div>
+  <div class="page-sub">Corte: <span id="fecha-corte2"></span></div>
+
+  <!-- ── BLOQUE 1: ESTADO ─────────────────────────────────── -->
+  <div class="card">
+    <div class="block-header" onclick="toggleBlock('b1')">
+      <div>
+        <div class="block-eyebrow">Estado · Corte: <span id="fecha-eyebrow"></span></div>
+        <div class="block-title">¿Dónde estamos parados?</div>
+      </div>
+      <span class="block-chevron open" id="chev-b1">▼</span>
+    </div>
+    <div class="block-body expanded" id="b1">
+
+      <div style="font-family:'Barlow',sans-serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:.65rem;">
+        Se realizaron <span style="color:var(--green);font-weight:700;">39.919 pulg</span> de obra de un total de <span style="color:var(--blue);font-weight:700;">58.156 pulg</span>
+        — quedan por completar <span style="color:var(--amber);font-weight:700;">18.237 pulg</span>.
+      </div>
+
+      <div class="kpi-mini-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="kpi-mini" style="border-top-color:var(--green);">
+          <div class="kpi-mini-label" style="color:var(--green);">Rendimiento real</div>
+          <div class="kpi-mini-val" style="color:var(--green);">4,07 <span style="font-size:14px;font-weight:600;">HH/Pulg</span></div>
+          <div class="kpi-mini-sub">Contractual AESA: 5,76</div>
+        </div>
+        <div class="kpi-mini blue">
+          <div class="kpi-mini-label">Pulgadas pendientes de soldar</div>
+          <div class="kpi-mini-val">9.995 <span style="font-size:14px;font-weight:600;">pulg</span></div>
+          <div class="kpi-mini-sub">Ya soldadas: 48.161,31 pulg</div>
+        </div>
+        <div class="kpi-mini blue">
+          <div class="kpi-mini-label">Pulgadas pendientes de montar</div>
+          <div class="kpi-mini-val">33.846 <span style="font-size:14px;font-weight:600;">pulg</span></div>
+          <div class="kpi-mini-sub">Ya montadas: 24.310 pulg</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── BLOQUE 2: ¿DÓNDE SE GENERA EL DESVÍO? ───────────── -->
+  <div class="card">
+    <div class="block-header" onclick="toggleBlock('b2')">
+      <div>
+        <div class="block-eyebrow">Análisis de desvíos · Corte: 27/04/2026</div>
+        <div class="block-title">¿Dónde se genera el desvío?</div>
+      </div>
+      <span class="block-chevron" id="chev-b2">▼</span>
+    </div>
+    <div class="block-body collapsed" id="b2">
+    <div class="card-sub" style="margin-top:.2rem;margin-bottom:.9rem;">Áreas y causas principales. Tamaño de burbuja = pulgadas remanentes. Eje X = desvío s/objetivo. Eje Y = avance real.</div>
+
+    <!-- Gráfico de barras horizontales desvío -->
+    <div class="cc" style="margin-bottom:1.1rem;padding:1rem 1.25rem;background:var(--bg);border-radius:10px;">
+      <div class="cl">Desvío por área respecto al plan</div>
+      <div class="chart-note">Ordenado de mayor a menor desvío. Barras hacia la izquierda = atraso. Valor = desvío en puntos porcentuales sobre el previsto.</div>
+      <div class="leg" style="margin-bottom:8px;">
+        <span class="li"><span class="ls" style="background:rgba(192,57,43,.8);"></span>Crítica (&gt; −50 pts)</span>
+        <span class="li"><span class="ls" style="background:rgba(184,86,10,.8);"></span>Atención (−20 a −50 pts)</span>
+        <span class="li"><span class="ls" style="background:rgba(27,75,138,.7);"></span>Leve retraso (&lt; −20 pts)</span>
+        <span class="li"><span class="ls" style="background:rgba(26,107,58,.8);"></span>Adelantada (&gt; 0 pts)</span>
+      </div>
+      <div style="position:relative;height:420px;"><canvas id="barrasDesv"></canvas></div>
+    </div>
+
+    <!-- Los dos gráficos originales -->
+    <div class="charts-2">
+      <div class="cc">
+        <div class="cl">Pulgadas soldadas por período</div>
+        <div class="chart-note">Producción real período a período.</div>
+        <div class="leg">
+          <span class="li"><span class="ls" style="background:#1B4B8A;opacity:.8;"></span>Pulgadas soldadas</span>
+          <span class="li"><span class="ld" style="border-color:#00A3E0;"></span>Pulgadas necesarias para cumplir terminación mecánica</span>
+        </div>
+        <div style="position:relative;height:220px;"><canvas id="tendencia"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cl">Soldadores activos en el tiempo</div>
+        <div class="chart-note">Evolución de la dotación y producción asociada.</div>
+        <div class="leg">
+          <span class="li"><span class="ll" style="background:#1B4B8A;"></span>Soldadores activos</span>
+        </div>
+        <div style="position:relative;height:220px;"><canvas id="soldadores"></canvas></div>
+      </div>
+    </div>
+
+    </div><!-- /b2 -->
+  </div>
+
+  <!-- ── BLOQUE 3: ACCIONES ────────────────────────────────── -->
+  <div class="card">
+    <div class="block-header" onclick="toggleBlock('b3')">
+      <div>
+        <div class="block-eyebrow">Análisis de situación · Corte: 27/04/2026</div>
+        <div class="block-title">¿Qué está pasando esta semana?</div>
+      </div>
+      <span class="block-chevron" id="chev-b3">▼</span>
+    </div>
+    <div class="block-body collapsed" id="b3">
+    <div class="card-sub" style="margin-top:.2rem;margin-bottom:.9rem;">Análisis de situación por área con recomendaciones para considerar. La decisión final queda a criterio del equipo de conducción.</div>
+
+    <div class="alist">
+
+      <div class="ai urgente">
+        <div class="ai-head">
+          <div class="ai-area">Área 3 · VRU → Área 16 · RCI/Agua — posible reasignación</div>
+          <span class="ai-badge">Para evaluar</span>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-col"><div class="ai-col-label">Situación</div><div class="ai-col-text">Área 3 al 93%, próxima a liberar equipos. Área 16 tiene la mayor carga remanente del proyecto.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Potencial beneficio</div><div class="ai-col-text">Redirigir equipos a Área 16 podría impactar directamente en el cierre.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Consideración</div><div class="ai-col-text">Evaluar viabilidad esta semana, dejando dotación mínima en Área 3.</div></div>
+        </div>
+      </div>
+
+      <div class="ai urgente">
+        <div class="ai-head">
+          <div class="ai-area">Área 5 · Sólidos y Área 7 · Bombas — dotación baja</div>
+          <span class="ai-badge">Para evaluar</span>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-col"><div class="ai-col-label">Situación</div><div class="ai-col-text">Área 5 al 5%, ruta crítica. Área 7 al 26% con 1.606 pulg pendientes y ritmo insuficiente.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Potencial beneficio</div><div class="ai-col-text">Más recursos en estas áreas mejoraría su proyección y reduciría riesgo de plazo.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Consideración</div><div class="ai-col-text">Revisar disponibilidad de recursos ponderando otras prioridades.</div></div>
+        </div>
+      </div>
+
+      <div class="ai atencion">
+        <div class="ai-head">
+          <div class="ai-area">Área 1 · PTA — tendencia ajustada al límite</div>
+          <span class="ai-badge">A monitorear</span>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-col"><div class="ai-col-label">Situación</div><div class="ai-col-text">Al 23% de avance. Tendencia proyecta cierre al 22/07, en el límite del plazo.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Potencial beneficio</div><div class="ai-col-text">Seguimiento cercano permite detectar desvíos a tiempo antes de que escalen.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Consideración</div><div class="ai-col-text">Revisar evolución el viernes. Si no mejora, evaluar intervención la semana siguiente.</div></div>
+        </div>
+      </div>
+
+      <div class="ai ok">
+        <div class="ai-head">
+          <div class="ai-area">Área 2 · TK Crudo y Área 3 · VRU — por encima del plan</div>
+          <span class="ai-badge">Seguimiento estándar</span>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-col"><div class="ai-col-label">Situación</div><div class="ai-col-text">Ambas superan el avance previsto. Área 3 próxima al cierre.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Potencial beneficio</div><div class="ai-col-text">Al cerrar, liberan equipos redistribuibles a áreas con mayor remanente.</div></div>
+          <div class="ai-col"><div class="ai-col-label">Consideración</div><div class="ai-col-text">Sin intervención necesaria por ahora. El equipo puede evaluar si hay margen para reasignar antes del cierre.</div></div>
+        </div>
+      </div>
+
+    </div>
+
+    </div><!-- /b3 -->
+  </div>
+
+  <!-- ── BLOQUE 4: SIMULADOR ───────────────────────────────── -->
+  <div class="card">
+    <div class="block-header" onclick="toggleBlock('b4')" style="margin-bottom:0;">
+      <div>
+        <div class="block-eyebrow">Simulador de escenarios</div>
+        <div class="block-title">¿Qué pasa si…?</div>
+      </div>
+      <span class="block-chevron" id="chev-b4">▼</span>
+    </div>
+    <div class="block-body collapsed" id="b4">
+      <div class="sim" style="margin-top:.85rem;margin-bottom:0;">
+      <div class="sim-disclaimer">Modelo de estimación para evaluación de escenarios. Los resultados son aproximados.</div>
+
+      <div class="sim-grid">
+
+        <div class="sim-control">
+          <label>Soldadores activos</label>
+          <div class="sim-val" id="val-sold">30 <span>equipos</span></div>
+          <input type="range" id="sl-sold" min="10" max="255" value="30" step="1" oninput="updateSim()">
+          <div class="sim-ticks"><span>10</span><span>255</span></div>
+        </div>
+
+        <div class="sim-control">
+          <label>Horas por jornada</label>
+          <div class="sim-val" id="val-hs">9 <span>hs/día</span></div>
+          <input type="range" id="sl-hs" min="4" max="14" value="9" step="0.5" oninput="updateSim()">
+          <div class="sim-ticks"><span>4 hs</span><span>14 hs</span></div>
+        </div>
+
+        <div class="sim-control">
+          <label>Rendimiento (HH/Pulg)</label>
+          <div class="sim-val" id="val-rend">4,10 <span>HH/Pulg</span></div>
+          <input type="range" id="sl-rend" min="2" max="10" value="7.9" step="0.1" oninput="updateSim()">
+          <div class="sim-ticks"><span>10.0</span><span>2.0 ✓</span></div>
+        </div>
+
+        <div class="sim-result">
+          <div class="sim-rl">Producción estimada</div>
+          <div style="display:flex;align-items:baseline;gap:.75rem;margin-bottom:.5rem;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.75);" id="res-prod">—</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.75);" id="res-prod-sem">—</div>
+          </div>
+          <div class="sim-rl">Fin proyectado</div>
+          <div class="sim-rb bad" id="res-fecha">—</div>
+          <div class="sim-rs" id="res-sem">—</div>
+          <div class="sim-rs" id="res-tm" style="color:rgba(255,255,255,.45);font-size:11px;">—</div>
+          <div style="margin-top:.55rem;">
+            <div class="sim-rl">Días para completar</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:rgba(255,255,255,.65);" id="res-dias">—</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Simulador dos fases -->
+      <div class="dist-toggle" onclick="toggleFases()">
+        <span class="dist-toggle-label">▸ Simular en dos fases</span>
+        <span class="dist-toggle-arrow" id="fases-arrow">▼</span>
+      </div>
+      <div class="dist-panel" id="fases-panel">
+        <div style="margin-top:.75rem;display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+
+          <!-- FASE 1 -->
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:1rem 1.25rem;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);margin-bottom:.75rem;">Fase 1 · Desde corte</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Hasta fecha</label>
+                <input type="date" id="f1-fecha" value="2026-06-30"
+                  style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:4px 8px;color:var(--cyan);font-size:12px;font-family:'Barlow',sans-serif;width:100%;"
+                  oninput="updateFases()">
+              </div>
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Soldadores</label>
+                <input type="number" id="f1-sold" value="45" min="1" max="255"
+                  class="dist-input" style="width:100%;" oninput="updateFases()">
+              </div>
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Horas/día</label>
+                <input type="number" id="f1-hs" value="8" min="4" max="14" step="0.5"
+                  class="dist-input" style="width:100%;" oninput="updateFases()">
+              </div>
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Rend. (HH/Pulg)</label>
+                <input type="number" id="f1-rend" value="4.07" min="1" max="20" step="0.1"
+                  class="dist-input" style="width:100%;" oninput="updateFases()">
+              </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:.65rem;display:flex;flex-direction:column;gap:.3rem;">
+              <div style="display:flex;justify-content:space-between;font-size:11px;">
+                <span style="color:rgba(255,255,255,.5);">Días trabajados</span>
+                <span style="color:var(--white);font-weight:600;" id="f1-dias">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;">
+                <span style="color:rgba(255,255,255,.5);">Producción estimada</span>
+                <span style="color:var(--cyan);font-weight:600;" id="f1-prod">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;">
+                <span style="color:rgba(255,255,255,.5);">Pulgadas restantes</span>
+                <span style="color:var(--white);font-weight:700;" id="f1-rem">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FASE 2 -->
+          <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:1rem 1.25rem;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);margin-bottom:.75rem;">Fase 2</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Desde</label>
+                <div id="f2-desde" style="font-size:12px;color:rgba(255,255,255,.4);padding:4px 0;">—</div>
+              </div>
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Soldadores</label>
+                <input type="number" id="f2-sold" value="60" min="1" max="255"
+                  class="dist-input" style="width:100%;" oninput="updateFases()">
+              </div>
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Horas/día</label>
+                <input type="number" id="f2-hs" value="10" min="4" max="14" step="0.5"
+                  class="dist-input" style="width:100%;" oninput="updateFases()">
+              </div>
+              <div>
+                <label style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);display:block;margin-bottom:.3rem;">Rend. (HH/Pulg)</label>
+                <input type="number" id="f2-rend" value="4.07" min="1" max="20" step="0.1"
+                  class="dist-input" style="width:100%;" oninput="updateFases()">
+              </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:.65rem;display:flex;flex-direction:column;gap:.3rem;">
+              <div style="display:flex;justify-content:space-between;font-size:11px;">
+                <span style="color:rgba(255,255,255,.5);">Días disponibles</span>
+                <span style="color:var(--white);font-weight:600;" id="f2-dias">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;">
+                <span style="color:rgba(255,255,255,.5);">Capacidad fase 2</span>
+                <span style="color:var(--cyan);font-weight:600;" id="f2-cap">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:13px;margin-top:.2rem;">
+                <span style="color:rgba(255,255,255,.6);font-weight:600;">Resultado</span>
+                <div style="text-align:right;">
+                  <div style="font-weight:800;font-family:'Barlow Condensed',sans-serif;font-size:16px;" id="f2-result">—</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;" id="f2-semanas"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Distribución por área -->
+      <div class="dist-toggle" onclick="toggleDist()">
+        <span class="dist-toggle-label">▸ Simular por área</span>
+        <span class="dist-toggle-arrow" id="dist-arrow">▼</span>
+      </div>
+      <div class="dist-panel" id="dist-panel">
+        <div class="dist-total">
+          <div class="dist-total-label">Total asignado</div>
+          <div class="dist-total-val ok" id="dist-total-val">0</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);">de</div>
+          <div class="dist-total-val" style="color:var(--cyan);" id="dist-total-cap">45</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);">soldadores disponibles</div>
+          <div style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.4);" id="dist-restante">45 sin asignar</div>
+        </div>
+        <table class="dist-table">
+          <thead>
+            <tr>
+              <th>Área</th>
+              <th class="right">Inicio tarea</th>
+              <th class="right">Pulg rest.</th>
+              <th class="right">Avance real</th>
+              <th class="right">Fin estimado del área</th>
+              <th class="right">Soldadores</th>
+              <th class="right">Rend. (HH/Pulg)</th>
+            </tr>
+          </thead>
+          <tbody id="dist-tbody"></tbody>
+        </table>
+      </div>
+      </div><!-- /sim -->
+    </div><!-- /b4 -->
+  </div><!-- /card simulador -->
+
+
+
+</div><!-- /main -->
+
+<div style="text-align:center;padding:.75rem 2rem 1.5rem;font-size:11px;color:var(--text3);font-style:italic;letter-spacing:.03em;">
+  ⚠ Los datos presentados en esta herramienta son de carácter ilustrativo y no representan información real del proyecto.
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+
+/* ── CONSTANTES DEL PROYECTO ─────────────────────────────── */
+const CORTE_FECHA = new Date(2026, 3, 27);  // 27/04/2026
+const PLAZO_DIAS  = 86;                     // días hasta 22/07/2026
+const PULG_REM    = 17922;                  // pulgadas restantes al corte
+const N_AREAS     = 17;
+const MESES_ES    = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+const CHART_GRID = 'rgba(0,0,0,.06)';
+const CHART_TICK = { font: { size: 10, family: "'Barlow',sans-serif" }, color: '#8896A8' };
+
+/* ── DATOS DE ÁREAS ──────────────────────────────────────── */
+const areasData = [
+  { id:'CP00100', n:'Área 1 - PTA',                     pulg:1206, real:23.1, crit:true,  inicio:'1/3/2026'   },
+  { id:'CP00120', n:'Área 2 - TK Crudo',                pulg:2124, real:75.4,             inicio:'5/2/2026'   },
+  { id:'CP00130', n:'Área 3 - VRU',                     pulg:140,  real:93.2,             inicio:'6/10/2025'  },
+  { id:'CP00150', n:'Área 5 - Tratamiento de sólidos',  pulg:632,  real:5.3,  crit:true,  inicio:'14/4/2026'  },
+  { id:'CP00160', n:'Área 6 - Servicios',               pulg:451,  real:50.9,             inicio:'3/2/2026'   },
+  { id:'CP00170', n:'Área 7 - Bombas de agua',          pulg:1606, real:26.3,             inicio:'9/3/2026'   },
+  { id:'CP00180', n:'Área 8 - Despacho PET/Booster',    pulg:1397, real:34.8,             inicio:'2/3/2026'   },
+  { id:'CP00190', n:'Área 9 - Trasvase/Transferencia',  pulg:852,  real:32.9,             inicio:'19/1/2026'  },
+  { id:'CP00200', n:'Área 10 - Intercambiadores',       pulg:277,  real:88.8,             inicio:'30/11/2025' },
+  { id:'CP00210', n:'Área 11 - Separación',             pulg:186,  real:94.5,             inicio:'13/12/2025' },
+  { id:'CP00220', n:'Área 12 - Ingreso',                pulg:159,  real:85.2,             inicio:'14/10/2025' },
+  { id:'CP00230', n:'Área 13 - Compresión',             pulg:415,  real:2.2,              inicio:'9/3/2025'   },
+  { id:'CP00240', n:'Área 16 - RCI/Agua',               pulg:3502, real:16.0,             inicio:'16/2/2025'  },
+  { id:'CP00250', n:'Área 18 - Venteo',                 pulg:818,  real:14.8,             inicio:'13/12/2023' },
+  { id:'CP00270', n:'Área 20 - Sendas',                 pulg:60,   real:99.5,             inicio:'7/8/2024'   },
+  { id:'CP00110', n:'Cañerías enterradas',              pulg:1253, real:88.5,             inicio:'15/4/2025'  },
+];
+
+/* Estado de asignación de equipos por área */
+const soldAsignados = {};
+const rendAsignados = {};
+areasData.forEach(a => { soldAsignados[a.id] = 0; rendAsignados[a.id] = 4.07; });
+
+/* ── FECHA DE CORTE DINÁMICA ─────────────────────────────── */
+(function mostrarFecha() {
+  const str = '27/04/2026';
+  const label = `Corte: ${str}`;
+  document.getElementById('fecha-corte').textContent   = label;
+  document.getElementById('fecha-corte2').textContent  = str;
+  document.getElementById('fecha-eyebrow').textContent = str;
+})();
+
+/* ── HELPERS ─────────────────────────────────────────────── */
+function calcFinStr(pulg, sold, hs, rend) {
+  if (sold <= 0 || pulg <= 0) return '—';
+  const pulg_dia = (rend / 3) * hs * sold;
+  const dias = Math.ceil(pulg / pulg_dia);
+  const fin = new Date(CORTE_FECHA.getTime() + dias * 86400000);
+  return `${fin.getDate()}/${fin.getMonth() + 1}/${String(fin.getFullYear()).slice(2)}`;
+}
+
+function eficiencia(n_por_area) {
+  const n = Math.min(n_por_area, 15);
+  if (n <= 5)  return 1.0;
+  if (n <= 10) return 1.0 - (n - 5) / 5 * 0.2;
+  return 0.8 - (n - 10) / 5 * 0.2;
+}
+
+function getSliderVals() {
+  const slRend = parseFloat(document.getElementById('sl-rend').value);
+  return {
+    sold: parseInt(document.getElementById('sl-sold').value),
+    hs:   parseFloat(document.getElementById('sl-hs').value),
+    rend: parseFloat((12 - slRend).toFixed(2)),  // invertido: derecha = menor HH/Pulg = mejor
+  };
+}
+
+/* ── SIMULADOR ───────────────────────────────────────────── */
+function updateSim() {
+  const { sold, hs, rend } = getSliderVals();
+  const npa      = sold / N_AREAS;
+  const eff      = eficiencia(npa);
+  const pulg_hora_soldador = rend * 0.22;
+  const pulg_dia = (hs * sold) / pulg_hora_soldador * eff;
+
+  document.getElementById('val-sold').innerHTML  = `${sold} <span>equipos</span>`;
+  document.getElementById('val-hs').innerHTML    = `${hs} <span>hs/día</span>`;
+  document.getElementById('val-rend').innerHTML  = `${rend.toFixed(2)} <span>HH/Pulg</span>`;
+  document.getElementById('res-prod').textContent = `${Math.round(pulg_dia)} pulg/día`;
+  document.getElementById('res-prod-sem').textContent = `${Math.round(pulg_dia * 7).toLocaleString('es-AR')} pulg/sem`;
+  document.getElementById('dist-total-cap').textContent = sold;
+  updateDistTotal();
+
+  const dias      = pulg_dia > 0 ? Math.ceil(PULG_REM / pulg_dia) : 9999;
+  const fin       = new Date(CORTE_FECHA.getTime() + dias * 86400000);
+  const diff_sem  = Math.round((dias - PLAZO_DIAS) / 7);
+
+  document.getElementById('res-fecha').textContent = `${MESES_ES[fin.getMonth()]} ${fin.getFullYear()}`;
+  document.getElementById('res-dias').textContent  = `${dias} días`;
+
+  const elFecha = document.getElementById('res-fecha');
+  const elSem   = document.getElementById('res-sem');
+  const elTM    = document.getElementById('res-tm');
+
+  const TM_FIN     = new Date(2026, 6, 31); // 31/07/2026 — Terminación Mecánica PTC Tren 1
+  const diasTM     = Math.round((TM_FIN - fin) / 86400000);
+  const semTM      = Math.floor(Math.abs(diasTM) / 7);
+
+  if (diff_sem <= 0) {
+    elFecha.className  = 'sim-rb ok';
+    elSem.textContent  = diff_sem === 0 ? 'Exactamente en plazo PLA006' : `${Math.abs(diff_sem)} sem. antes del plazo PLA006`;
+  } else if (diff_sem <= 4) {
+    elFecha.className  = 'sim-rb warn';
+    elSem.textContent  = `+${diff_sem} sem. sobre PLA006`;
+  } else {
+    elFecha.className  = 'sim-rb bad';
+    elSem.textContent  = `+${diff_sem} sem. sobre PLA006`;
+  }
+
+  if (diasTM >= 0) {
+    elTM.textContent = `${semTM} sem. antes de Terminación Mecánica (31/7)`;
+    elTM.style.color = 'rgba(255,255,255,.45)';
+  } else {
+    elTM.textContent = `${semTM} sem. después de Terminación Mecánica (31/7)`;
+    elTM.style.color = '#F87171';
+  }
+}
+
+/* ── DISTRIBUCIÓN POR ÁREA ───────────────────────────────── */
+function toggleDist() {
+  const panel  = document.getElementById('dist-panel');
+  const arrow  = document.getElementById('dist-arrow');
+  const slRend = document.getElementById('sl-rend');
+  panel.classList.toggle('open');
+  arrow.classList.toggle('open');
+  const isOpen = panel.classList.contains('open');
+  slRend.disabled = isOpen;
+  slRend.style.opacity = isOpen ? '0.35' : '1';
+  slRend.style.cursor  = isOpen ? 'not-allowed' : 'pointer';
+  if (isOpen && document.getElementById('dist-tbody').innerHTML === '') {
+    renderDistTable();
+  }
+}
+
+function renderDistTable() {
+  const { hs } = getSliderVals();
+  const tbody = document.getElementById('dist-tbody');
+  tbody.innerHTML = areasData.map(a => {
+    const sold   = soldAsignados[a.id] || 0;
+    const rend   = rendAsignados[a.id] || 4.07;
+    const finStr = calcFinStr(a.pulg, sold, hs, rend);
+    const pct    = Math.min(100, (sold / 15) * 100);
+    return `<tr>
+      <td>${a.n}</td>
+      <td class="right" style="color:rgba(255,255,255,.55);font-size:10px;">${a.inicio || '—'}</td>
+      <td class="right">${a.pulg.toLocaleString('es-AR')} ${a.um || 'pulg'}</td>
+      <td class="right">${a.real.toFixed(1)}%</td>
+      <td class="right dist-fin" id="fin-${a.id}">${finStr}</td>
+      <td class="right">
+        <input class="dist-input" type="number" min="0" max="15" value="${sold}"
+          oninput="updateAsignacion('${a.id}', this.value)" />
+        <div class="dist-bar"><div class="dist-bar-fill ${sold > 15 ? 'over' : ''}" style="width:${pct}%"></div></div>
+      </td>
+      <td class="right">
+        <input class="dist-input" type="number" min="1" max="20" step="0.1" value="${rend}"
+          oninput="updateRendArea('${a.id}', this.value)" />
+      </td>
+    </tr>`;
+  }).join('');
+  updateDistTotal();
+}
+
+function updateRendArea(id, val) {
+  rendAsignados[id] = parseFloat(val) || 4.07;
+  const { hs } = getSliderVals();
+  const a = areasData.find(x => x.id === id);
+  const finEl = document.getElementById('fin-' + id);
+  if (finEl) finEl.textContent = calcFinStr(a.pulg, soldAsignados[id], hs, rendAsignados[id]);
+  updateSimFromDist();
+}
+
+function updateAsignacion(id, val) {
+  soldAsignados[id] = parseInt(val) || 0;
+  const { hs } = getSliderVals();
+  const a = areasData.find(x => x.id === id);
+  const finEl = document.getElementById('fin-' + id);
+  if (finEl) finEl.textContent = calcFinStr(a.pulg, soldAsignados[id], hs, rendAsignados[id]);
+  updateDistTotal();
+  updateSimFromDist();
+}
+
+function updateDistTotal() {
+  const total = Object.values(soldAsignados).reduce((s, v) => s + v, 0);
+  const cap   = parseInt(document.getElementById('sl-sold').value) || 45;
+  const el    = document.getElementById('dist-total-val');
+  el.textContent = total;
+  el.className   = 'dist-total-val ' + (total > cap ? 'over' : 'ok');
+  document.getElementById('dist-restante').textContent =
+    total > cap ? `${total - cap} sobre el límite` : `${cap - total} sin asignar`;
+}
+
+function updateSimFromDist() {
+  const { hs } = getSliderVals();
+  let maxDias = 0;
+  areasData.forEach(a => {
+    const sold = soldAsignados[a.id] || 0;
+    const rend = rendAsignados[a.id] || 4.07;
+    if (sold > 0 && a.pulg > 0) {
+      const eff      = eficiencia(sold);
+      const pulg_dia = (rend / 3) * hs * sold * eff;
+      const dias     = Math.ceil(a.pulg / pulg_dia);
+      if (dias > maxDias) maxDias = dias;
+    }
+  });
+  if (maxDias === 0) return;
+
+  const fin      = new Date(CORTE_FECHA.getTime() + maxDias * 86400000);
+  const diff_sem = Math.round((maxDias - PLAZO_DIAS) / 7);
+
+  document.getElementById('res-fecha').textContent = `${MESES_ES[fin.getMonth()]} ${fin.getFullYear()}`;
+  document.getElementById('res-dias').textContent  = `${maxDias} días`;
+
+  const elFecha = document.getElementById('res-fecha');
+  const elSem   = document.getElementById('res-sem');
+  if (diff_sem <= 0) {
+    elFecha.className = 'sim-rb ok';
+    elSem.textContent = diff_sem === 0 ? 'Exactamente en plazo' : `${Math.abs(diff_sem)} sem. antes del plazo`;
+  } else if (diff_sem <= 4) {
+    elFecha.className = 'sim-rb warn';
+    elSem.textContent = `+${diff_sem} sem. sobre PLA006`;
+  } else {
+    elFecha.className = 'sim-rb bad';
+    elSem.textContent = `+${diff_sem} sem. sobre PLA006`;
+  }
+}
+
+/* ── SIMULADOR DOS FASES ─────────────────────────────────── */
+function toggleFases() {
+  const panel = document.getElementById('fases-panel');
+  const arrow = document.getElementById('fases-arrow');
+  panel.classList.toggle('open');
+  arrow.classList.toggle('open');
+  const isOpen = panel.classList.contains('open');
+
+  // Bloquear/desbloquear simulador general
+  ['sl-sold', 'sl-hs', 'sl-rend'].forEach(id => {
+    const el = document.getElementById(id);
+    el.disabled = isOpen;
+    el.style.opacity = isOpen ? '0.35' : '1';
+    el.style.cursor  = isOpen ? 'not-allowed' : 'pointer';
+  });
+
+  if (isOpen) updateFases();
+}
+
+function updateFases() {
+  const f1Fecha = new Date(document.getElementById('f1-fecha').value + 'T00:00:00');
+  const f1Sold  = parseInt(document.getElementById('f1-sold').value)   || 0;
+  const f1Hs    = parseFloat(document.getElementById('f1-hs').value)   || 0;
+  const f1Rend  = parseFloat(document.getElementById('f1-rend').value) || 4.07;
+  const f2Sold  = parseInt(document.getElementById('f2-sold').value)   || 0;
+  const f2Hs    = parseFloat(document.getElementById('f2-hs').value)   || 0;
+  const f2Rend  = parseFloat(document.getElementById('f2-rend').value) || 4.07;
+
+  const PLAZO_FIN = new Date(2026, 6, 22); // 22/07/2026
+
+  // Fase 1 — misma fórmula que simulador general: pulg/día = (hs * sold) / (rend * 0.22)
+  const f1Dias    = Math.max(0, Math.round((f1Fecha - CORTE_FECHA) / 86400000));
+  const f1PulgDia = f1Rend > 0 ? (f1Hs * f1Sold) / (f1Rend * 0.22) : 0;
+  const f1Prod    = Math.round(f1PulgDia * f1Dias);
+  const f1Rem     = Math.max(0, PULG_REM - f1Prod);
+
+  document.getElementById('f1-dias').textContent = `${f1Dias} días`;
+  document.getElementById('f1-prod').textContent = `${f1Prod.toLocaleString('es-AR')} pulg`;
+  document.getElementById('f1-rem').textContent  = `${f1Rem.toLocaleString('es-AR')} pulg`;
+  document.getElementById('f2-desde').textContent =
+    `${f1Fecha.getDate()}/${f1Fecha.getMonth()+1}/${f1Fecha.getFullYear()}`;
+
+
+  // Fase 2 — misma fórmula
+  const f2Dias    = Math.max(0, Math.round((PLAZO_FIN - f1Fecha) / 86400000));
+  const f2PulgDia = f2Rend > 0 ? (f2Hs * f2Sold) / (f2Rend * 0.22) : 0;
+  const f2Cap     = Math.round(f2PulgDia * f2Dias);
+  const alcanza   = f2Cap >= f1Rem;
+
+  document.getElementById('f2-dias').textContent = `${f2Dias} días`;
+  document.getElementById('f2-cap').textContent  = `${f2Cap.toLocaleString('es-AR')} pulg`;
+
+  const resEl  = document.getElementById('f2-result');
+  const semEl  = document.getElementById('f2-semanas');
+  const TM_FIN = new Date(2026, 6, 31); // 31/07/2026 — Terminación Mecánica PTC Tren 1
+
+  if (alcanza) {
+    const diasF2Necesarios = f2PulgDia > 0 ? Math.ceil(f1Rem / f2PulgDia) : 9999;
+    const finReal  = new Date(f1Fecha.getTime() + diasF2Necesarios * 86400000);
+    const finStr   = `${finReal.getDate()}/${finReal.getMonth()+1}/${finReal.getFullYear()}`;
+    const diasAntes = Math.round((TM_FIN - finReal) / 86400000);
+    const semAntes  = Math.floor(diasAntes / 7);
+
+    resEl.textContent = '✓ Alcanza';
+    resEl.style.color = '#4ADE80';
+
+    if (diasAntes >= 0) {
+      semEl.innerHTML = `Termina el <strong style="color:rgba(255,255,255,.85);">${finStr}</strong> · ${semAntes} sem antes de TM`;
+    } else {
+      semEl.innerHTML = `Termina el <strong style="color:#F87171;">${finStr}</strong> · ${Math.abs(semAntes)} sem después de TM`;
+    }
+  } else {
+    const falta = f1Rem - f2Cap;
+    resEl.textContent = `✗ Faltan ${falta.toLocaleString('es-AR')} pulg`;
+    resEl.style.color = '#F87171';
+    semEl.textContent = '';
+  }
+}
+
+
+new Chart(document.getElementById('tendencia'), {
+  type: 'line',
+  data: {
+    labels: ['8/3','15/3','22/3','29/3','5/4','12/4','19/4','27/4'],
+    datasets: [
+      {
+        label: 'Pulgadas soldadas',
+        data: [939.4, 2750.2, 2674.2, 1550.3, 3201.6, 1871.3, 1626.6, 2937.5],
+        borderColor: '#1B4B8A',
+        backgroundColor: 'rgba(27,75,138,.12)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: '#1B4B8A',
+        fill: true,
+        tension: .35,
+        order: 2,
+      },
+      {
+        label: 'Pulgadas necesarias para cumplir terminación mecánica',
+        data: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500],
+        type: 'line',
+        borderColor: '#00A3E0',
+        borderWidth: 2,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+        order: 1,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+    scales: {
+      x: { ticks: CHART_TICK, grid: { display: false } },
+      y: { ticks: { ...CHART_TICK, callback: v => v.toLocaleString('es-AR') }, grid: { color: CHART_GRID } },
+    },
+  },
+});
+
+new Chart(document.getElementById('soldadores'), {
+  type: 'bar',
+  data: {
+    labels: ['8/3','15/3','22/3','29/3','5/4','12/4','19/4','27/4'],
+    datasets: [
+      {
+        label: 'Soldadores activos',
+        data: [19, 55, 53, 31, 60, 37, 33, 59],
+        backgroundColor: 'rgba(27,75,138,.75)',
+        borderRadius: 4,
+        borderSkipped: false,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+    scales: {
+      x: { ticks: CHART_TICK, grid: { display: false } },
+      y: {
+        min: 0,
+        ticks: CHART_TICK,
+        grid: { color: CHART_GRID },
+        title: { display: true, text: 'Soldadores activos', color: '#8896A8', font: { size: 9 } },
+      },
+    },
+  },
+});
+
+/* ── GRÁFICO DE BURBUJAS — DESVÍOS POR ÁREA ─────────────── */
+// Datos del Excel: x=desvío s/obj (%), y=avance real (%), r=pulgadas remanentes
+// ── GRÁFICO DE BARRAS HORIZONTALES — DESVÍOS POR ÁREA ───────
+const desviosData = [
+  { n:'Área 16 - RCI/Agua',               desv:-84.0, rem:6906.5, crit:false },
+  { n:'Área 18 - Venteo',                 desv:-82.6, rem:862,    crit:false },
+  { n:'Área 5 - Sólidos',                 desv:-77.6, rem:631.6,  crit:true  },
+  { n:'Área 7 - Bombas de agua',          desv:-73.7, rem:1606.5, crit:false },
+  { n:'Área 1 - PTA',                     desv:-60.8, rem:1271.1, crit:true  },
+  { n:'Soportes de piping',               desv:-60.9, rem:92.8,   crit:false },
+  { n:'Área 13 - Compresión',             desv:-51.6, rem:414.8,  crit:true  },
+  { n:'Área 9 - Trasvase/Transf.',        desv:-55.3, rem:852.3,  crit:false },
+  { n:'Área 6 - Servicios',               desv:-17.4, rem:450.8,  crit:false },
+  { n:'Área 8 - Despacho PET/Booster',   desv:-12.4, rem:1097.3, crit:false },
+  { n:'Área 12 - Ingreso',                desv:-14.8, rem:163.7,  crit:false },
+  { n:'Cañerías enterradas',              desv:-11.5, rem:1252.8, crit:false },
+  { n:'Área 10 - Intercambiadores',       desv:-11.2, rem:277.1,  crit:false },
+  { n:'Área 11 - Separación',             desv:-5.5,  rem:100.7,  crit:false },
+  { n:'Área 20 - Sendas',                 desv:-0.5,  rem:62.1,   crit:false },
+  { n:'Área 4 - Calentadores',            desv:-0.05, rem:0.4,    crit:false },
+  { n:'Área 2 - TK Crudo',               desv:+18.6, rem:1830.2, crit:false },
+  { n:'Área 3 - VRU',                     desv:+56.5, rem:142.5,  crit:false },
+].sort((a, b) => a.desv - b.desv);
+
+function barColor(desv, crit) {
+  if (desv > 0)         return 'rgba(26,107,58,.8)';
+  if (crit || desv < -50) return 'rgba(192,57,43,.85)';
+  if (desv < -20)       return 'rgba(184,86,10,.85)';
+  return 'rgba(27,75,138,.7)';
+}
+
+new Chart(document.getElementById('barrasDesv'), {
+  type: 'bar',
+  data: {
+    labels: desviosData.map(d => d.n),
+    datasets: [{
+      data: desviosData.map(d => d.desv),
+      backgroundColor: desviosData.map(d => barColor(d.desv, d.crit)),
+      borderRadius: 3,
+      borderSkipped: false,
+    }],
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = desviosData[ctx.dataIndex];
+            return [
+              ` Desvío: ${d.desv > 0 ? '+' : ''}${d.desv.toFixed(1)} pts`,
+              ` Remanente: ${d.rem.toLocaleString('es-AR')} pulg`,
+              d.crit ? ' ⚠ Tarea crítica' : '',
+            ].filter(Boolean);
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: { ...CHART_TICK, callback: v => `${v > 0 ? '+' : ''}${v} pts` },
+        grid: { color: CHART_GRID },
+        title: { display: true, text: 'Desvío vs plan (pts %)', color: '#8896A8', font: { size: 10 } },
+      },
+      y: {
+        ticks: { ...CHART_TICK, font: { size: 10, family: "'Barlow',sans-serif" } },
+        grid: { display: false },
+      },
+    },
+  },
+});
+
+/* ── BLOQUES COLAPSABLES ─────────────────────────────────── */
+function toggleBlock(id) {
+  const body  = document.getElementById(id);
+  const chev  = document.getElementById('chev-' + id);
+  const isOpen = body.classList.contains('expanded');
+  body.classList.toggle('expanded',  !isOpen);
+  body.classList.toggle('collapsed',  isOpen);
+  chev.classList.toggle('open', !isOpen);
+  // Forzar resize de charts.js si el bloque se abre
+  if (!isOpen) {
+    setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
+  }
+}
+
+/* ── INIT ────────────────────────────────────────────────── */
+updateSim();
+
+</script>
+</body>
+</html>
